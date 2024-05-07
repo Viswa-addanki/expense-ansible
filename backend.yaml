@@ -47,7 +47,7 @@
       chdir: /app
 
   - name: copy service into backend
-    ansible.builtin.copymodule:
+    ansible.builtin.copy:
       src: backend.service
       dest: /etc/systemd/system/backend.service
 
