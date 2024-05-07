@@ -22,4 +22,3 @@
       filter: Version
     ignore_errors: yes
     register: mysql_connection_output
-    
