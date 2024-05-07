@@ -33,4 +33,8 @@
       src: /tmp/backend.zip
       dest: /app
       remote_src: yes
-  
+
+  - name: isntall python dependecies
+    ansible.builtin.command: npm install
+    args:
+      chdir: /app
