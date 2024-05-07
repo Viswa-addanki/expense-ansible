@@ -1,6 +1,9 @@
 - name: Backend
   become: yes
   hosts: backend
+  vars:
+    login_host: db.viswaws.online
+    login_password: ExpenseApp@1
 
   tasks:
   - name: disbable default nodejs
@@ -11,8 +14,12 @@
     
   - name: install nodejs
     ansible.builtin.dnf:
-      name: nodejs
+      name: "{{ item }}"
       state: installed
+
+    loop:
+    - nodejs
+    - mysql  
 
   - name: create expense user
     ansible.builtin.user:
@@ -23,7 +30,7 @@
       path: /app
       state: directory
 
-  - name: down;oad backend code
+  - name: download backend code
     ansible.builtin.get_url:
       url: https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip
       dest: /tmp/backend.zip
@@ -34,7 +41,39 @@
       dest: /app
       remote_src: yes
 
-  - name: isntall python dependecies
+  - name: install nodejs dependecies
     ansible.builtin.command: npm install
     args:
       chdir: /app
+
+  - name: copy service into backend
+    ansible.builtin.copymodule:
+      src: backend.service
+      dest: /etc/systemd/system/backend.service
+
+  - name: isntall python dependecies
+    ansible.builtin.pip:
+      name:
+      - PyMySQL  # to connect MYSQL db to backend
+      - cryptography
+      executable: pip3.9 
+
+  - name: import data into mysql
+    community.mysql.mysql_db:
+      login_user: root
+      login_password: "{{ login_password }}"
+      login_host: "{{ login_host }}"
+      target: /app/schema/backend.sql
+      state: import
+      name: all    
+    
+    
+  - name: daemon reload
+    ansible.builtin.systemd_service:
+      daemon_reload: true
+
+  - name: start and enable backend service
+    ansible.builtin.service:
+      name: backend
+      state: started
+      enabled: yes 
