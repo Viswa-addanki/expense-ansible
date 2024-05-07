@@ -1,24 +1,35 @@
-- name: configure db server
-  host: db
+- name: configure DB server
+  hosts: db
   become: yes
   vars:
     login_host: db.viswaws.online
+  vars_prompt:
+  - name: mysql_root_password
+    prompt: please enter MySQL root password
+    private: no
   tasks:
-  - name: Install MyQL Server
+  - name: Install MySQL Server
     ansible.builtin.dnf:
       name: mysql-server
       state: latest
-  - name: start and enable mysql server
+
+  - name: Start and Enable MySQL server
     ansible.builtin.service:
-      name: mqsqld
+      name: mysqld
       state: started
       enabled: yes
-  #check password is setup or not
-  - name: Check DB connection
+
+  
+  # check password is already setup or not
+  - name: check DB connection
     community.mysql.mysql_info:
       login_user: root
-      login_password: ExpenseApp@1
-      login_host: "{{login_host}}"
-      filter: Version
+      login_password: "{{ mysql_root_password }}"
+      login_host: "{{ login_host }}"
+      filter: version
     ignore_errors: yes
     register: mysql_connection_output
+
+
+
+  
