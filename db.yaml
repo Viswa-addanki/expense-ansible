@@ -1,0 +1,25 @@
+- name: configure db server
+  host: db
+  become: yes
+  vars:
+    login_host: db.viswaws.online
+  tasks:
+  - name: Install MyQL Server
+    ansible.builtin.dnf:
+      name: mysql-server
+      state: latest
+  - name: start and enable mysql server
+    ansible.builtin.service:
+      name: mqsqld
+      state: started
+      enabled: yes
+  #check password is setup or not
+  - name: Check DB connection
+    community.mysql.mysql_info:
+      login_user: root
+      login_password: ExpenseApp@1
+      login_host: "{{login_host}}"
+      filter: Version
+    ignore_errors: yes
+    register: mysql_connection_output
+    
